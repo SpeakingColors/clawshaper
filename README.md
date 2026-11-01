@@ -12,9 +12,9 @@ Design mockup only. The interactive mockup in `docs/mockup/` runs a WebAudio pre
 Open `docs/mockup/ClawShaper.html` in a browser. Nothing is sent anywhere; it works offline (fonts load from Google Fonts when online, with a fallback).
 
 ## Controls in the mockup
-Input dB, Mix, Out dB, Ceil, Lim, Release, Look, Attack, Sustain, Max dB, Output, Zoom
+Input dB, Mix, Out dB, Ceil, Lim, Release, Look, Zoom, Attack, Sustain, Max dB, Output
 
-Every control has a hover info bubble (112 in total).
+Every control has a hover info bubble (117 in total).
 
 ## Privacy
 Collects nothing. No network access.

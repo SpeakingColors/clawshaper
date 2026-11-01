@@ -177,6 +177,26 @@ canvas{display:block}
 .pb{height:410px}
 .pb{grid-template-columns:350px 1fr}
 
+.strip{display:flex;flex-direction:column}
+.strip .thead{padding:4px 6px 3px;border-bottom:1px solid var(--line);flex:none}
+.strip .dpart{flex:none;padding:4px 6px 2px}
+.strip .dpbot{margin-top:3px}
+.strip .cl{flex:none;height:auto;display:block;padding:2px 6px 4px;border-bottom:0;border-top:1px solid var(--line);background:rgba(255,255,255,.025)}
+.cl .shr{display:flex;align-items:center;justify-content:space-between;height:22px}
+.cl .shr .spd{margin-top:0}
+.cl .shr .seg button{height:20px;font-size:12px;padding:0 7px}
+.cl .krow{align-items:flex-end;justify-content:space-between;gap:6px;margin-top:0;padding:0 4px}
+.kb.hero .kv{font-size:13px;font-weight:600;height:15px;color:#fff}
+.kb.hero .kl{font-size:15px;letter-spacing:1.4px;color:#fff}
+.smallk{display:flex;flex-direction:column;gap:6px;justify-content:flex-end;padding-bottom:4px}
+.smallk .kb.h .kv{min-width:50px}
+.strip .tpart{flex:none;height:auto;border-top:1px solid var(--line);border-bottom:0;padding:4px 6px}
+.ceiln{font-size:11px;color:#6fe3a6;letter-spacing:.3px;display:flex;align-items:center;gap:5px;white-space:nowrap;margin-top:2px;font-family:var(--font-num)}
+.ceiln .lamp{width:8px;height:8px;border-radius:50%;background:#02EBBA;box-shadow:0 0 6px 1px #02EBBA;flex:none}
+.ceiln .lamp.off{background:#FF1383;box-shadow:0 0 6px 1px #FF1383}
+.ceiln{font-size:10px;letter-spacing:0;gap:4px;margin-top:0;max-width:156px;overflow:hidden}
+.ceiln{font-size:9.5px;max-width:none;overflow:visible;margin-left:-6px}
+
 </style>
 <div id="app" data-look="C">
   <div id="frame">
@@ -316,7 +336,7 @@ class Engine{
   this.anySolo=this.bp.some((b,i)=>i<this.nb&&b.solo);
   this.gMix=m.mix/100;this.gIn=D2L(m.inG);this.gOut=D2L(m.outG);this.ceil=D2L(m.lim.ceil);this.limOn=m.lim.on;this.limAuto=m.lim.auto;this.kLr=1-Math.exp(-1/(Math.max(1,m.lim.rel)*0.001*fs));
   this.LA=Math.max(1,Math.round(m.la*0.001*fs));if(this.LA!==this.mLL.la)this.mLL.setLA(this.LA);
-  this.lat=this.dLA+this.LA-1;this.listen=m.listen;this.bypass=!!m.byp}
+  this.lat=this.dLA+this.LA-1;this.listen=m.listen;this.boost=[1,2,4][m.boost|0];this.bypass=!!m.byp}
  /* ---- process one block, in place ---- */
  process(L,R,n){const fs=this.fs,nb=this.nb;let preP=0,postP=0,pl=0,pr=0,ql=0,qr=0,rpd=0,rpc=0;
   for(let i=0;i<n;i++){let xl=L[i],xr=R[i];
@@ -338,7 +358,7 @@ class Engine{
     const fdb=20*Math.log10(S.f+1e-6),sdb=20*Math.log10(S.s+1e-6),diff=fdb-sdb;          /* diff > 0: attack phase, diff < 0: sustain phase */
     S.lvl=fdb;S.diff=diff;
     let tg=0;if(p.on){const gate=clamp((fdb-p.thr)/GATE_W,0,1);S.gate=gate;
-     tg=(diff>0?p.atk*AK*softDz(diff):p.sus*SK*softDz(-diff))*gate;
+     tg=(diff>0?p.atk*AK*this.boost*softDz(diff):p.sus*SK*this.boost*softDz(-diff))*gate;
      if(p.lim>0.001)tg=p.lim*Math.tanh(tg/p.lim);else tg=0}
     S.cur+=(tg-S.cur)*(Math.abs(tg)>Math.abs(S.cur)?this.kGa:this.kGr);                  /* short attack / release on the gain: no zipper noise */
     const g=Math.exp(S.cur*0.1151293);
@@ -375,12 +395,12 @@ class Engine{
   this.bs.forEach(s=>{s.f=s.s=s.cur=0;s.wa=.5});this.bandDL.forEach(a=>a.forEach(d=>d.clear()));this.mixDry.forEach(d=>d.clear());this.dryTot.forEach(d=>d.clear());this.mLL.setLA(this.mLL.la===1?2:1);this.mLL.setLA(this.LA)}
 }
 /* default engine parameters (the UI builds the same object from the parameter table) */
-const DEFM=()=>({bands:4,slope:1,x:[120,1200,6000],mix:100,inG:0,outG:0,lim:{on:true,ceil:-0.3,rel:80,auto:true},la:3,listen:0,byp:false,
+const DEFM=()=>({bands:4,slope:1,x:[120,1200,6000],mix:100,inG:0,outG:0,lim:{on:true,ceil:-0.3,rel:80,auto:true},la:3,listen:0,boost:0,byp:false,
  b:[0,1,2,3].map(()=>({on:true,mute:false,solo:false,atk:0,sus:0,spd:1,thr:-48,max:12,outG:0,mix:100}))});
 
 
 /* ============ Product name: the only place the working name lives ============ */
-const NAME='ClawShaper', VERSION='1.0';   /* the only place the product name lives */
+const NAME='ClawShaper', VERSION='1.1';   /* the only place the product name lives */
 const REPO='SpeakingColors/clawshaper';
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
 const el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!==undefined)e.innerHTML=h;return e};
@@ -409,6 +429,7 @@ P('m.lAuto',0,1,1,{int:1,unit:'on/off',tip:'Auto release: the limiter lets go sl
 P('m.lRel',5,500,80,{log:1,unit:'ms',tip:'Limiter release in ms: how fast the limiter lets go after a peak. Used when Auto is off. 5 to 500 ms.'});
 P('m.la',1,7.5,3,{unit:'ms',tip:'Lookahead in ms, 1 to 7.5 (default 3). The limiter sees peaks this long before they play, so it can turn down smoothly. Longer is cleaner, shorter is lower latency. It sets the reported latency.'});
 P('m.listen',0,2,0,{int:1,ui:1,unit:'All/Transients/Sustain',tip:'Listen: hear the result (All), only the attack part (Transients) or only the sustain part (Sustain). The two parts add up to the shaped sound. Handy for setting a band by ear.'});
+P('m.boost',0,2,0,{int:1,unit:'x1/x2/x4',tip:'Boost: makes Attack and Sustain act harder, for extreme shaping. x1 is the normal range (default), x2 doubles and x4 quadruples how many dB each percent can add or take away. Raise a band Max dB to let it go further. The limiter at the end still keeps the output under the Ceiling.'});
 P('m.fft',0,3,1,{int:1,ui:1,unit:'off/in+out/in/out',tip:'Spectrum behind the bands. In + Out shows the input in grey and the output in green. The scale on the right is dBFS.'});
 for(let i=0;i<4;i++){const b='b'+i+'.',n='Band '+(i+1)+': ';
  P(b+'on',0,1,1,{int:1,unit:'on/off',tip:n+'power. Off lets the band pass untouched (it still goes through the crossover).'});
@@ -418,7 +439,7 @@ for(let i=0;i<4;i++){const b='b'+i+'.',n='Band '+(i+1)+': ';
  P(b+'sus',-100,100,0,{unit:'%',tip:n+'Sustain. Plus makes what comes after the hit louder (longer, fuller tails). Minus makes it shorter and tighter. 0 leaves it alone. Double-click for 0.'});
  P(b+'spd',0,2,1,{int:1,unit:'fast/medium/slow',tip:n+'Speed of the two level followers that tell the hit from the tail. Fast suits short clicks and hats, Medium suits most things, Slow suits long bass and pads.'});
  P(b+'thr',-60,0,-48,{unit:'dB',tip:n+'Threshold. Below this level the shaper does nothing, so quiet noise is not boosted. Drag the white slider on the level meter. Double-click it for -48.'});
- P(b+'max',0,24,12,{unit:'dB',tip:n+'Max gain: the most this band can be turned up or down by the shaper, in dB (0 to 24, default 12). Keeps strong settings from running away.'});
+ P(b+'max',0,48,12,{unit:'dB',tip:n+'Max gain: the most this band can be turned up or down by the shaper, in dB (0 to 48, default 12). Keeps strong settings from running away.'});
  P(b+'outG',-24,8,0,{unit:'dB',tip:n+'Output gain in dB, after the shaper and before the bands are added together. Double-click for 0.'});
  P(b+'mix',0,100,100,{unit:'%',tip:n+'Mix: shaped band against the untouched band (aligned in time). 100% is fully shaped.'});
  P(b+'view',0,1,0,{int:1,ui:1,unit:'scope/gain',tip:'Display: scope or gain history.'});
@@ -429,7 +450,7 @@ const posOf=(id,v)=>{const p=PS[id];return p.log?Math.log(v/p.min)/Math.log(p.ma
 const valOf=(id,t)=>{const p=PS[id];t=clamp(t,0,1);let v=p.log?p.min*Math.pow(p.max/p.min,t):p.min+t*(p.max-p.min);return p.int?Math.round(v):v};
 /* state to engine parameters */
 const xOf=()=>[st['m.x1'],st['m.x2'],st['m.x3']];
-function coreM(){return{bands:st['m.bands'],slope:st['m.slope'],x:xOf(),mix:st['m.mix'],inG:st['m.inG'],outG:st['m.outG'],lim:{on:!!st['m.limOn'],ceil:st['m.ceil'],rel:st['m.lRel'],auto:!!st['m.lAuto']},la:st['m.la'],listen:st['m.listen'],byp:!!st['m.byp'],
+function coreM(){return{bands:st['m.bands'],slope:st['m.slope'],x:xOf(),mix:st['m.mix'],inG:st['m.inG'],outG:st['m.outG'],lim:{on:!!st['m.limOn'],ceil:st['m.ceil'],rel:st['m.lRel'],auto:!!st['m.lAuto']},la:st['m.la'],listen:st['m.listen'],boost:st['m.boost'],byp:!!st['m.byp'],
  b:[0,1,2,3].map(i=>{const b='b'+i+'.';return{on:!!st[b+'on'],mute:!!st[b+'mute'],solo:!!st[b+'solo'],atk:st[b+'atk'],sus:st[b+'sus'],spd:st[b+'spd'],thr:st[b+'thr'],max:st[b+'max'],outG:st[b+'outG'],mix:st[b+'mix']}})}}
 /* ============ Formatting ============ */
 const fHz=v=>v>=1000?(v/1000).toFixed(v>=10000?1:2).replace(/\.?0+$/,'')+' kHz':(v>=100?Math.round(v):v.toFixed(1).replace(/\.0$/,''))+' Hz';
@@ -500,6 +521,7 @@ const lr2=el('div','limrow');colR.appendChild(lr2);
 knob(lr2,{id:'m.lRel',label:'Release',size:30,fmt:v=>st['m.lAuto']?'AUTO':fMs(v),color:'#FF7BB1'});
 {const w=el('div','kb');w.appendChild(el('div','kv',''));const t=toggle(w,'m.lAuto','Auto');t.style.cssText='margin:8px 0 0;height:18px';t.dataset.tip=PS['m.lAuto'].tip;w.appendChild(el('div','kl',''));w.dataset.tip=PS['m.lAuto'].tip;lr2.appendChild(w)}
 knob(lr2,{id:'m.la',label:'Look',size:30,fmt:v=>v.toFixed(1)+' ms',color:'#FF7BB1'});
+const ceilNote=el('div','ceiln','');ceilNote.dataset.tip='The limiter is always the last stage, whatever Mix, Boost, Max dB or Output gain you set: nothing leaves the plugin above the Ceiling. Change the Ceiling with the Ceil knob (-12 to 0 dB), or switch the limiter off with the Lim lamp.';colR.appendChild(ceilNote);
 /* ---- centre ---- */
 const ctr=el('div','ctr');
 const gtop=el('div','gtop');ctr.appendChild(gtop);
@@ -508,6 +530,7 @@ selectBox(gtop,'m.slope',SLOPE_LAB,PS['m.slope'].tip);
 {const lw=el('div','lst');lw.style.cssText='display:flex;align-items:center;gap:6px';lw.dataset.tip=PS['m.listen'].tip;lw.appendChild(el('span','cap','Listen'));
  seg(lw,'m.listen',['All','Transients','Sustain'],['Hear the shaped result, as it will leave the plugin (Mix applies).','Hear only the attack part of the shaped sound: the shaped sound minus its sustain part. Mix is ignored while listening.','Hear only the sustain part of the shaped sound (what is left after the attack part is taken away). Mix is ignored while listening.']);gtop.appendChild(lw)}
 knob(gtop,{id:'m.mix',label:'Mix',size:34,cls:'h mixk',fmt:fPct});
+{const bw=el('div','lst');bw.style.cssText='display:flex;align-items:center;gap:6px';bw.dataset.tip=PS['m.boost'].tip;bw.appendChild(el('span','cap','Boost'));seg(bw,'m.boost',['x1','x2','x4'],['Normal range (default).','Double: Attack and Sustain push twice as many dB per percent.','Four times: extreme shaping. Raise Max dB on a band to let it go further. The limiter still holds the Ceiling.']);gtop.appendChild(bw)}
 const gright=el('div','gright');gtop.appendChild(gright);
 selectBox(gright,'m.fft',['FFT off','In + Out FFT','Input FFT','Output FFT'],PS['m.fft'].tip);
 const cvG=el('canvas','cv');cvG.style.touchAction='none';cvG.dataset.tip='Frequency view, 20 Hz to 20 kHz. Drag the vertical dividers to move the crossovers. The coloured line in each band is the gain the shaper applies right now (left scale, -12 to +12 dB). Right scale: spectrum in dBFS.';ctr.appendChild(cvG);
@@ -522,28 +545,35 @@ const p1grid=el('div','p1');p1.appendChild(p1grid);p1grid.appendChild(colL);p1gr
 const strips=el('div','strips');p1.appendChild(strips);
 const S=[];
 const SW=271;
+const SCH=78;
 for(let i=0;i<4;i++){const b='b'+i+'.',col=BC[i];const so={};S.push(so);
  const strip=el('div','strip');so.el=strip;strips.appendChild(strip);
- const tp=el('div','tpart');strip.appendChild(tp);const l1=el('div','l1');tp.appendChild(l1);
+ /* 1 header */
+ const hd1=el('div','thead');strip.appendChild(hd1);const l1=el('div','l1');hd1.appendChild(l1);
  knob(l1,{id:b+'mix',label:'Mix',size:28,cls:'h',fmt:fPct,color:col});
  so.nm=el('div','bname','');so.nm.dataset.tip='Band '+(i+1)+' and the range of sound it works on. Move the crossovers in the graph to change it.';l1.appendChild(so.nm);
  powerBtn(l1,b+'on');
- so.cvIn=el('canvas','cv');so.cvIn.dataset.tip='Band level in dB (before shaping) with the Threshold slider. Drag the white slider: below it the shaper does nothing, so quiet noise is not boosted. The word on the right says whether the shaper is working right now. Scale in dB.';tp.appendChild(so.cvIn);so.cvIn.style.touchAction='none';so.gIn=hd(so.cvIn,SW,36,true);
- so.cvGr=el('canvas','cv');so.cvGr.dataset.tip='Gain change of this band: how many dB the shaper is turning the band up (right, gold) or down (left, purple) right now. Scale -12 to +12 dB.';tp.appendChild(so.cvGr);so.gGr=hd(so.cvGr,SW,18,true);so.cvGr.style.marginTop='2px';
- const cl=el('div','cl');strip.appendChild(cl);
- const th=el('div','st','SHAPER');cl.appendChild(th);
- const r1=el('div','krow');cl.appendChild(r1);
- knob(r1,{id:b+'atk',label:'Attack',size:44,color:col,fmt:fSgn});
- knob(r1,{id:b+'sus',label:'Sustain',size:44,color:col,fmt:fSgn});
- knob(r1,{id:b+'max',label:'Max dB',size:28,color:col,fmt:v=>'±'+v.toFixed(0)});
- knob(r1,{id:b+'outG',label:'Output',size:28,color:col,fmt:v=>fDb(v)});
- const r2=el('div','spd');cl.appendChild(r2);r2.appendChild(el('span','cap','Speed'));
- seg(r2,b+'spd',['Fast','Medium','Slow'],['Fast detectors: for short clicks, hats and snappy drums.','Medium detectors: a good start for most sounds.','Slow detectors: for long bass notes, pads and lead tails.']);
+ /* 2 the transient picture: scope on top */
  const dp=el('div','dpart');strip.appendChild(dp);
- so.cvSc=el('canvas','cv');so.cvSc.dataset.tip='Band display. Scope: red is the original band, green is the shaped band, grey is where they overlap, shown as a waveform shape in dB over the last seconds. Gain: how much the band was turned up or down over time, in dB. Choose with the buttons below; Zoom changes the time span.';dp.appendChild(so.cvSc);so.gSc=hd(so.cvSc,SW,90,true);
+ so.cvSc=el('canvas','cv');so.cvSc.dataset.tip='Transient picture of this band. Scope: red is the original band, green is the shaped band, grey is where they overlap, as a waveform shape in dB over the last seconds. Gain: how much the band was turned up or down over time, in dB. Choose with the buttons below; Zoom changes the time span.';dp.appendChild(so.cvSc);so.gSc=hd(so.cvSc,SW,SCH,true);
  const bt=el('div','dpbot');dp.appendChild(bt);
  [['Scope','Scope view: red is the original band, green the shaped band, grey where they overlap, as a waveform shape in dB.'],['Gain','Gain view: how many dB the shaper turned this band up or down over the last seconds.']].forEach(([t,tip],k)=>{const x=el('button','tgb',t);x.style.width='56px';x.dataset.tip=tip;x.onclick=()=>setP(b+'view',k,true);bt.appendChild(x);ctls.push({refresh(){x.classList.toggle('on',st[b+'view']===k)}})});
- knob(bt,{id:b+'zoom',label:'Zoom',size:26,color:col,fmt:v=>Math.round(1+v*7)+'x',cls:'h'});
+ knob(bt,{id:b+'zoom',label:'Zoom',size:24,color:col,fmt:v=>Math.round(1+v*7)+'x',cls:'h'});
+ /* 3 the shaper: the hero */
+ const cl=el('div','cl');strip.appendChild(cl);
+ const th=el('div','shr');cl.appendChild(th);th.appendChild(el('div','st','SHAPER'));
+ const r2=el('div','spd');th.appendChild(r2);r2.appendChild(el('span','cap','Speed'));
+ seg(r2,b+'spd',['Fast','Medium','Slow'],['Fast detectors: for short clicks, hats and snappy drums.','Medium detectors: a good start for most sounds.','Slow detectors: for long bass notes, pads and lead tails.']);
+ const r1=el('div','krow');cl.appendChild(r1);
+ knob(r1,{id:b+'atk',label:'Attack',size:58,color:col,fmt:fSgn,cls:'hero'});
+ knob(r1,{id:b+'sus',label:'Sustain',size:58,color:col,fmt:fSgn,cls:'hero'});
+ const sm=el('div','smallk');r1.appendChild(sm);
+ knob(sm,{id:b+'max',label:'Max dB',size:26,color:col,fmt:v=>'±'+v.toFixed(0),cls:'h'});
+ knob(sm,{id:b+'outG',label:'Output',size:26,color:col,fmt:v=>fDb(v),cls:'h'});
+ /* 4 secondary: level meter with threshold, gain change */
+ const tp=el('div','tpart');strip.appendChild(tp);
+ so.cvIn=el('canvas','cv');so.cvIn.dataset.tip='Band level in dB (before shaping) with the Threshold slider. Drag the white slider: below it the shaper does nothing, so quiet noise is not boosted. The word on the right says whether the shaper is working right now. Scale in dB.';tp.appendChild(so.cvIn);so.cvIn.style.touchAction='none';so.gIn=hd(so.cvIn,SW,36,true);
+ so.cvGr=el('canvas','cv');so.cvGr.dataset.tip='Gain change of this band: how many dB the shaper is turning the band up (right, gold) or down (left, purple) right now. Scale -12 to +12 dB.';tp.appendChild(so.cvGr);so.gGr=hd(so.cvGr,SW,18,true);so.cvGr.style.marginTop='2px';
 }
 /* ============ Graph interaction and drawing ============ */
 const DBT=[12,6,0,-6,-12],YDB=d=>GY0+(12-clamp(d,-12,12))/24*(GY1-GY0);
@@ -618,7 +648,7 @@ function drawStrips(){const n=st['m.bands'];
    [[-12,'-12'],[-6,'-6'],[0,'0'],[6,'+6'],[12,'+12']].forEach(([d,t])=>{g.fillText(t,clamp(X(d),10,w-8),h-1)});g.textAlign='left';g.lineWidth=3;g.strokeStyle=T.disp;const tx='Gain '+fDb(bs.cur);g.strokeText(tx,8,8);g.fillStyle='#fff';g.fillText(tx,8,8);g.lineWidth=1}
   const v=st[b+'view'];if(v===0)drawScope(i);else drawGainHist(i)}}
 function legend(g,w){g.font='700 10px Barlow Condensed,sans-serif';g.textAlign='right';let x=w-6;[['both','#b9bcc6'],['shaped','#02EBBA'],['original','#FF3D5A']].forEach(([t,c])=>{g.fillStyle=c;g.fillText(t,x,10);x-=g.measureText(t).width+8})}
-function drawScope(i){const g=S[i].gSc,w=SW,h=90,bs=eng.bs[i],b='b'+i+'.';g.fillStyle=T.disp;g.fillRect(0,0,w,h);const N=Math.round(480/(1+st[b+'zoom']*7)),cy=h/2,A=(h-22)/2;
+function drawScope(i){const g=S[i].gSc,w=SW,h=SCH,bs=eng.bs[i],b='b'+i+'.';g.fillStyle=T.disp;g.fillRect(0,0,w,h);const N=Math.round(480/(1+st[b+'zoom']*7)),cy=h/2,A=(h-22)/2;
  const ampY=a=>clamp((L2D(a)+54)/54,0,1)*A;
  g.strokeStyle=T.line;g.lineWidth=1;g.fillStyle='#01FCDC';g.font='9px JetBrains Mono,monospace';g.textAlign='left';
  [0,-12,-24,-48].forEach(d=>{const y=cy-(d+54)/54*A;g.beginPath();g.moveTo(24,y);g.lineTo(w-3,y);g.stroke();g.beginPath();g.moveTo(24,2*cy-y);g.lineTo(w-3,2*cy-y);g.stroke();g.fillText(String(d),2,y+3)});
@@ -628,7 +658,7 @@ function drawScope(i){const g=S[i].gSc,w=SW,h=90,bs=eng.bs[i],b='b'+i+'.';g.fill
  path(bs.scI,'#FF3D5A',.85);path(bs.scO,'#02EBBA',.85);path(mn,'#b9bcc6',.9);
  const thr=st[b+'thr'],ty=cy-(clamp(thr,-54,0)+54)/54*A;g.strokeStyle='#fff';g.setLineDash([3,3]);g.beginPath();g.moveTo(24,ty);g.lineTo(w-3,ty);g.stroke();g.beginPath();g.moveTo(24,2*cy-ty);g.lineTo(w-3,2*cy-ty);g.stroke();g.setLineDash([]);
  g.fillStyle='#6CC9F5';g.textAlign='center';g.font='9px JetBrains Mono,monospace';const secs=N*0.006;[1,.5,0].forEach((f,k)=>{g.fillText(f===0?'now':'-'+(secs*f).toFixed(2)+'s',clamp(26+(1-f)*(w-30),24,w-16),h-3)});legend(g,w)}
-function drawGainHist(i){const g=S[i].gSc,w=SW,h=90,b='b'+i+'.',N=Math.round(360/(1+st[b+'zoom']*7)),h0=eng.grHist[i],Y=d=>7+(12-clamp(d,-12,12))/24*(h-26);g.fillStyle=T.disp;g.fillRect(0,0,w,h);g.strokeStyle=T.line;g.fillStyle='#CD92FE';g.font='9px JetBrains Mono,monospace';g.textAlign='left';
+function drawGainHist(i){const g=S[i].gSc,w=SW,h=SCH,b='b'+i+'.',N=Math.round(360/(1+st[b+'zoom']*7)),h0=eng.grHist[i],Y=d=>7+(12-clamp(d,-12,12))/24*(h-26);g.fillStyle=T.disp;g.fillRect(0,0,w,h);g.strokeStyle=T.line;g.fillStyle='#CD92FE';g.font='9px JetBrains Mono,monospace';g.textAlign='left';
  [12,6,0,-6,-12].forEach(d=>{g.strokeStyle=d===0?'#4a4d55':T.line;g.beginPath();g.moveTo(26,Y(d));g.lineTo(w-3,Y(d));g.stroke();g.fillText((d>0?'+':'')+d,2,Y(d)+3)});
  g.beginPath();g.moveTo(26,Y(0));for(let k=0;k<N;k++){const v=h0[(eng.ghN+360-N+k)%360];g.lineTo(26+k/(N-1)*(w-30),Y(v))}g.lineTo(w-4,Y(0));g.closePath();g.fillStyle=hex2rgba(BC[i],.35);g.fill();g.strokeStyle=BC[i];g.lineWidth=1.6;g.stroke();
  g.fillStyle='#6CC9F5';g.textAlign='center';const secs=N/60;[1,.5,0].forEach(f=>{g.fillText(f===0?'now':'-'+(secs*f).toFixed(1)+'s',clamp(26+(1-f)*(w-30),26,w-14),h-3)})}
@@ -641,7 +671,7 @@ S.forEach((S1,i)=>{const ci=S1.cvIn;let td=false;const tset=e=>{const r=ci.getBo
 const TYPES=['Drums','Bass','Lead','Bus','Creative','Utility'];
 const SRCNAME={mix:'Full mix loop',kick:'Kick only',kb:'Kick + offbeat bass',drums:'Drum loop',bass:'Offbeat bass',lead:'Supersaw lead'};
 /* CS(name, type, tags, best source in the rig, global settings, per band settings) */
-function CS(name,type,tags,tryOn,g,bs){const p={};const G={bands:'m.bands',mix:'m.mix',ceil:'m.ceil',limOn:'m.limOn',inG:'m.inG',outG:'m.outG',la:'m.la',lAuto:'m.lAuto',lRel:'m.lRel'};
+function CS(name,type,tags,tryOn,g,bs){const p={};const G={bands:'m.bands',mix:'m.mix',ceil:'m.ceil',limOn:'m.limOn',inG:'m.inG',outG:'m.outG',la:'m.la',lAuto:'m.lAuto',lRel:'m.lRel',boost:'m.boost'};
  for(const k in g)if(G[k])p[G[k]]=g[k];
  if(g.slope)p['m.slope']=SLOPES.indexOf(g.slope);if(g.x)g.x.forEach((v,i)=>p['m.x'+(i+1)]=v);
  (bs||[]).forEach((o,i)=>{if(!o)return;for(const k in o)p['b'+i+'.'+k]=o[k]});
@@ -662,6 +692,9 @@ const FACT=[
  CS('Soften Harsh Attacks','Bus',['soften','harsh','de-click'],'lead',{bands:4,slope:24,x:[150,1500,5000]},[{},{},{atk:-30,spd:1},{atk:-50,spd:0,thr:-54}]),
  CS('Room Away','Utility',['room','dry','tail'],'drums',{bands:3,slope:24,x:[150,8000]},[{},{sus:-50,spd:1},{sus:-30,spd:0}]),
  CS('Offbeat Chop','Creative',['bass','chop','gate'],'bass',{bands:2,slope:24,x:[250]},[{atk:30,sus:-90,spd:0,max:24},{sus:-60,spd:0}]),
+ CS('Kick Smash','Creative',['kick','extreme','boost'],'kick',{bands:3,slope:24,x:[90,4000],boost:2,ceil:-0.5},[{atk:60,sus:-60,spd:1,max:36},{atk:100,sus:-70,spd:0,max:48},{atk:70,spd:0,max:30}]),
+ CS('Sustain Bloom','Creative',['sustain','extreme','boost'],'drums',{bands:3,slope:24,x:[200,5000],boost:2,ceil:-0.5},[{sus:60,spd:2,thr:-54,max:30},{sus:100,spd:1,thr:-54,max:48},{sus:70,spd:0,thr:-56,max:36}]),
+ CS('Pluck Slam','Lead',['lead','pluck','extreme'],'lead',{bands:2,slope:24,x:[250],boost:1,ceil:-0.5},[{atk:50,sus:-30,spd:1,max:30},{atk:100,sus:-50,spd:0,max:36}]),
  CS('Mastering Touch','Bus',['master','gentle','glue'],'mix',{bands:4,slope:24,x:[120,1200,6000],ceil:-0.3},[{atk:8,sus:5,spd:2,max:3},{atk:8,sus:5,spd:2,max:3},{atk:8,sus:5,spd:2,max:3},{atk:8,sus:5,spd:2,max:3}])
 ];
 let userP=[];
@@ -734,6 +767,7 @@ function syncUI(){normX();
  ctls.forEach(c=>c.refresh());layoutMS();
  const ed=bandEdges(),nb=st['m.bands'];
  S.forEach((s,i)=>{s.nm.innerHTML='BAND '+(i+1)+(i<nb?'<small>'+fHz(ed[i])+' to '+fHz(ed[i+1])+'</small>':'<small>unused</small>')});
+ ceilNote.innerHTML=st['m.limOn']?'<span class="lamp"></span>Output never above '+st['m.ceil'].toFixed(1)+' dBFS':'<span class="lamp off"></span>Limiter off: output not capped';
  app.classList.toggle('ro-off',!sys.ro);
  latTxt.textContent='Latency '+(eng.lat/eng.fs*1000).toFixed(1)+' ms';
  const dirty=isDirty();$('#pName').textContent=curName+(dirty?' *':'');
@@ -753,12 +787,12 @@ $('#bGuide').onclick=()=>openModal('Guide',`<div class="gcols"><div><h3 class="g
 <li><b>A transient shaper with split bands.</b> It turns the first hit of a sound (Attack) and what comes after it (Sustain) up or down, in up to four frequency bands, so you choose which part of the sound it works on. A limiter at the end keeps the level safe.</li>
 <li><b>How it tells hit from tail:</b> two level followers, a fast one and a slow one, watch each band. When the fast one is above the slow one a hit is starting (attack). When it is below, the sound is dying away (sustain). The difference in dB, not the level, drives the gain, so it works the same on quiet and loud material.</li>
 <li><b>Threshold</b> keeps it from boosting noise: below it the band is left alone. <b>Max dB</b> limits how far a band can be pushed.</li>
-<li><b>Listen:</b> Transients plays only the attack part, Sustain only the rest; the two add up to the shaped sound.</li>
+<li><b>Boost</b> (x1, x2, x4) multiplies how hard Attack and Sustain act; x1 is the normal range. Max dB goes up to 48. The limiter always comes last, so the output never goes above the Ceiling, even at the most extreme setting.</li><li><b>Listen:</b> Transients plays only the attack part, Sustain only the rest; the two add up to the shaped sound.</li>
 <li><b>Mix</b> blends against the true input, delayed to match, so Mix 0% is exactly the input. Not affiliated with anyone.</li></ul>
 <h3 class="gh">Where to start</h3><ul class="gl"><li>Load Start Here, play Kick only or Drum loop, set a band to Attack +50, then press <kbd>B</kbd> to compare. Try Listen: Transients to hear what you are boosting.</li><li>Thicken a lead: Supersaw Body or Lead Thicken, then play Supersaw lead.</li></ul>
 <h3 class="gh">Keys</h3><table><tr><td><kbd>Space</kbd></td><td>Play or stop the preview</td></tr><tr><td><kbd>B</kbd></td><td>Bypass (A/B)</td></tr><tr><td><kbd>[</kbd> <kbd>]</kbd></td><td>Previous or next preset</td></tr><tr><td>Knobs</td><td>Drag, wheel, arrows; Shift for fine; double-click resets</td></tr></table></div>
 <div><h3 class="gh">What is verified and what is ours</h3><p><span class="vt">Given to us by the maker (the brief):</span> the control set (Input and Output gain, Mix, 1 to 4 bands with draggable crossovers, slope menu 12 to 96 dB/oct with 24 as default, per band On, Mute, Solo, Attack, Sustain, Speed, Threshold, Max gain, Output and Mix, Listen All, Transients or Sustain, limiter with Ceiling, Release with Auto and Lookahead 1 to 7.5 ms with 3 as default), the scope colours (red original, green shaped, grey overlap), and dB scales on every meter. The crossover, limiter and spectrum code is reused from our MultiPaw mockup, where the bands were tested to add back flat.</p>
-<p><span class="ou">Ours (our own DSP choices; we had no source for any commercial transient shaper):</span> everything that decides the sound. Two peak followers on the stereo linked rectified band signal (fast about 1 ms attack and 20 ms release, slow about 20 ms and 120 ms at Medium; Fast and Slow scale them; low bands are slowed down so a bass tone is not mistaken for hits). Difference in dB, 1 dB dead zone, Attack gain 1.5 dB per dB of difference at 100%, Sustain 4 dB per dB at 100%, soft limit at Max dB, gain smoothing 0.5 ms up and 5 ms down, soft gate over the Threshold. The audio is delayed 1 ms against the detector so the gain is ready when a hit arrives. Listen weights the attack and sustain parts by how far the difference is from zero (6 dB wide cross-fade). Crossovers are Linkwitz-Riley with all-pass compensation. The limiter is a lookahead limiter with a sliding minimum and a moving average; Auto release is 30 ms plus 10 ms per dB of reduction. The factory presets are starting points: we measured them, we cannot listen.</p>
+<p><span class="ou">Ours (our own DSP choices; we had no source for any commercial transient shaper):</span> everything that decides the sound. Two peak followers on the stereo linked rectified band signal (fast about 1 ms attack and 20 ms release, slow about 20 ms and 120 ms at Medium; Fast and Slow scale them; low bands are slowed down so a bass tone is not mistaken for hits). Difference in dB, 1 dB dead zone, Attack gain 1.5 dB per dB of difference at 100%, Sustain 4 dB per dB at 100% (both times the Boost factor 1, 2 or 4), soft limit at Max dB, gain smoothing 0.5 ms up and 5 ms down, soft gate over the Threshold. The audio is delayed 1 ms against the detector so the gain is ready when a hit arrives. Listen weights the attack and sustain parts by how far the difference is from zero (6 dB wide cross-fade). Crossovers are Linkwitz-Riley with all-pass compensation. The limiter is a lookahead limiter with a sliding minimum and a moving average; Auto release is 30 ms plus 10 ms per dB of reduction. The factory presets are starting points: we measured them, we cannot listen.</p>
 <p>Signal flow: Input gain, crossover, per band (detector, gain, 1 ms delay, Mix, Output, Mute and Solo), sum, Mix against the delayed true input, Output gain, limiter. Bypass plays the delayed input. This unit keeps its parameter ids stable (m.* and b0.* to b3.*) so it can also live inside CatRack.</p></div></div>`,null,'1100px');
 $('#bAbout').onclick=()=>openModal('About & Support',`<p><b>${esc(NAME)}</b> by Studio 87, version ${VERSION} (design mockup). A free open source transient shaper with split bands and a limiter. Licence AGPL-3.0-or-later. Collects nothing and never uses the network.</p>
 <div class="aboutbtns"><a class="btn" href="https://github.com/${REPO}" target="_blank" rel="noopener">GitHub</a><a class="btn" href="https://github.com/${REPO}/releases" target="_blank" rel="noopener">Releases</a><a class="btn" href="https://ko-fi.com/studio87" target="_blank" rel="noopener">Ko-fi studio87</a></div>
