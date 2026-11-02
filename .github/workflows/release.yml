@@ -1,0 +1,143 @@
+name: Release
+
+# Push a tag such as v0.1.0 to publish. A manual run without a tag only builds and uploads artifacts.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish (for example v0.1.0). Empty = build only.'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+env:
+  TAG: ${{ github.event.inputs.tag || (startsWith(github.ref, 'refs/tags/') && github.ref_name) || '' }}
+
+jobs:
+  manual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the manual PDF
+        run: |
+          VER="${TAG#v}"; [ -z "$VER" ] && VER="0.0.0-dev"
+          python3 tools/gen_manual.py
+          sed -i "s/version 0.1.0/version $VER/" docs/manual.html
+          google-chrome --headless --no-sandbox --disable-gpu --no-pdf-header-footer --print-to-pdf=ClawShaper-manual.pdf "file://$PWD/docs/manual.html"
+          test -s ClawShaper-manual.pdf
+      - uses: actions/upload-artifact@v4
+        with: { name: manual, path: ClawShaper-manual.pdf }
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libfreetype-dev libfontconfig1-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxext-dev libgl1-mesa-dev
+      - name: Build
+        run: |
+          VER="${TAG#v}"; [ -z "$VER" ] && VER="0.1.0"
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCS_VERSION="$VER"
+          cmake --build build --config Release -j4
+      - name: Package
+        run: |
+          mkdir -p out/ClawShaper-Linux
+          cp -R "build/ClawShaper_artefacts/Release/VST3/ClawShaper.vst3" out/ClawShaper-Linux/
+          cp installer/linux/install.sh installer/linux/uninstall.sh out/ClawShaper-Linux/
+          test -n "$(find "out/ClawShaper-Linux/ClawShaper.vst3" -name '*.so')"
+      - uses: actions/upload-artifact@v4
+        with: { name: linux, path: out/ClawShaper-Linux }
+
+  windows:
+    runs-on: windows-latest
+    needs: manual
+    defaults: { run: { shell: bash } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: manual, path: manual }
+      - name: Build
+        run: |
+          VER="${TAG#v}"; [ -z "$VER" ] && VER="0.1.0"
+          cmake -S . -B build -DCS_VERSION="$VER"
+          cmake --build build --config Release
+      - name: Installer
+        env:
+          MSYS2_ARG_CONV_EXCL: "*"
+        run: |
+          VER="${TAG#v}"; [ -z "$VER" ] && VER="0.1.0"
+          choco install innosetup -y --no-progress
+          "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" "/DMyVersion=$VER" "/DSourceVst3=$(cygpath -w "$PWD/build/ClawShaper_artefacts/Release/VST3/ClawShaper.vst3")" "/DManualPdf=$(cygpath -w "$PWD/manual/ClawShaper-manual.pdf")" "/O$(cygpath -w "$PWD/out")" installer/windows/ClawShaper.iss
+          test -s out/ClawShaper-Setup.exe
+      - uses: actions/upload-artifact@v4
+        with: { name: windows, path: out/ClawShaper-Setup.exe }
+
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          VER="${TAG#v}"; [ -z "$VER" ] && VER="0.1.0"
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCS_VERSION="$VER"
+          cmake --build build --config Release -j4
+      - name: Package
+        run: |
+          VER="${TAG#v}"; [ -z "$VER" ] && VER="0.1.0"
+          codesign --force --deep -s - "build/ClawShaper_artefacts/Release/VST3/ClawShaper.vst3"
+          mkdir -p out
+          pkgbuild --component "build/ClawShaper_artefacts/Release/VST3/ClawShaper.vst3" --install-location /Library/Audio/Plug-Ins/VST3 --identifier com.studio87.clawshaper.vst3 --version "$VER" out/ClawShaper-macOS.pkg
+          test -s out/ClawShaper-macOS.pkg
+      - uses: actions/upload-artifact@v4
+        with: { name: macos, path: out/ClawShaper-macOS.pkg }
+
+  package:
+    runs-on: ubuntu-latest
+    needs: [manual, linux, windows, macos]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: parts }
+      - name: Make the zip
+        run: |
+          VER="${TAG#v}"; [ -z "$VER" ] && VER="0.0.0-dev"
+          D="ClawShaper-$VER"
+          mkdir -p "$D/Linux" "$D/Windows" "$D/macOS"
+          cp -R parts/linux/* "$D/Linux/"
+          cp parts/windows/ClawShaper-Setup.exe "$D/Windows/"
+          cp parts/macos/ClawShaper-macOS.pkg "$D/macOS/"
+          cp installer/macos/uninstall-macos.sh "$D/macOS/"
+          cp parts/manual/ClawShaper-manual.pdf "$D/"
+          cp LICENSE "$D/"
+          cat > "$D/INSTALL.txt" <<TXT
+          ClawShaper $VER (Studio 87). Free and open source, AGPL-3.0-or-later.
+          Linux:   run Linux/install.sh (user only, copies the VST3 to ~/.vst3). Uninstall with Linux/uninstall.sh.
+          Windows: run Windows/ClawShaper-Setup.exe. Close your DAW first. Uninstall from Apps and features.
+          macOS:   open macOS/ClawShaper-macOS.pkg. The build is not notarised, so you may need to allow it in
+                   System Settings, Privacy and Security. Uninstall with macOS/uninstall-macos.sh.
+          Afterwards rescan plugins in your host. Your presets are kept when you uninstall unless you say yes.
+          The manual is ClawShaper-manual.pdf. This is a test build until it has been checked on real machines.
+          TXT
+          (cd "$D" && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
+          zip -r "$D.zip" "$D"
+          echo "ZIP=$D.zip" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@v4
+        with: { name: release-zip, path: "${{ env.ZIP }}" }
+      - name: Publish
+        if: env.TAG != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$ZIP" --clobber
+          else
+            gh release create "$TAG" "$ZIP" --prerelease --title "ClawShaper ${TAG#v} (test build)" --notes "Test build. Unzip, read INSTALL.txt, run the installer for your system. Manual inside."
+          fi

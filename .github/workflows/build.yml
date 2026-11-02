@@ -1,0 +1,43 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: clawshaper-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Core DSP tests (no JUCE)
+        run: sh tests/run.sh
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libasound2-dev libfreetype-dev libfontconfig1-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxext-dev libgl1-mesa-dev xvfb
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build --config Release -j4
+      - name: Download pluginval
+        run: |
+          curl -L -o pluginval.zip https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Linux.zip
+          unzip -o pluginval.zip
+          chmod +x pluginval
+      - name: pluginval (strictness 5)
+        run: xvfb-run -a ./pluginval --strictness-level 5 --skip-gui-tests "build/ClawShaper_artefacts/Release/VST3/ClawShaper.vst3"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ClawShaper-linux-vst3
+          path: build/ClawShaper_artefacts/Release/VST3/ClawShaper.vst3

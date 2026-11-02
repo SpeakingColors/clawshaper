@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>ClawShaper manual</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--bg:#0b0b0d;--card:#16171a;--line:#33363d;--ink:#e8e9ee;--dim:#a9adb8;--teal:#02EBBA;--pink:#FF7BB1}
+@media print{:root{--bg:#fff;--card:#f4f4f6;--line:#c9cbd3;--ink:#16171a;--dim:#4a4d55;--teal:#007a62;--pink:#b0114f}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Barlow Condensed","Arial Narrow",Arial,sans-serif;padding:24px max(16px,env(safe-area-inset-left,0px))}
+main{max-width:980px;margin:0 auto}
+h1{font-size:40px;margin:0 0 4px;font-style:italic}
+h2{font-size:26px;margin:36px 0 8px;color:var(--teal);letter-spacing:1px;text-transform:uppercase;break-after:avoid}
+a{color:var(--pink)}
+img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;display:block;margin:8px 0}
+table{border-collapse:collapse;width:100%;font-size:15px;display:block;overflow-x:auto}
+td,th{border-bottom:1px solid var(--line);padding:5px 8px;text-align:left;vertical-align:top}
+th{white-space:nowrap}
+code,kbd{font-family:"JetBrains Mono",Consolas,monospace;font-size:13px;background:var(--card);border:1px solid var(--line);border-radius:3px;padding:0 4px}
+.dim{color:var(--dim)}
+@media print{body{padding:0}tr{break-inside:avoid}img{break-inside:avoid}}
+</style></head><body><main>
+<h1>ClawShaper</h1>
+<p class="dim">Manual for version 0.1.0. Studio 87. Free and open source (AGPL-3.0-or-later). Collects nothing, never uses the network.</p>
+<p>A multiband transient shaper with a safety limiter. It turns the punch (attack) and the tail (sustain) of your sound up or down, in up to four bands, and it reacts to changes in level, not to the absolute level.</p>
+
+<h2>Quick start</h2>
+<ol>
+<li>Put ClawShaper on a drum or bass track. Pick a preset (for example <b>Kick Snap</b>) or start from <b>Start Here</b>.</li>
+<li>Choose how many bands (1 to 4) and drag the crossover lines in the big display to split the sound where you want.</li>
+<li>In a band: <b>Attack</b> up gives more punch, down softens it. <b>Sustain</b> up gives longer tails, down tightens. Use <b>Listen</b> to hear only the attack or only the sustain part.</li>
+<li>Drag the white <b>Threshold</b> slider on a band's level meter: below it nothing is shaped, so quiet noise is not boosted.</li>
+<li>Compare with <b>Bypass</b> (B). The dry signal is delayed to match. The limiter is always last and holds the Ceiling.</li>
+</ol>
+
+<h2>The window</h2>
+<img src="screenshot.png" alt="ClawShaper window">
+<table><tr><th>Control</th><th>What it does</th><th>Range</th><th>Default</th></tr><tr><th>Preset arrows, name, Save</th><td>Open the preset browser. Double-click to rename your own presets. Save these settings as your own preset. Asks before overwriting.</td><td></td><td></td></tr><tr><th>Bypass</th><td>Bypass (B): hear the dry signal, delayed to match, to compare with the processed sound. The meters keep moving.</td><td></td><td></td></tr><tr><th>Guide, Settings, About</th><td>Short guide, info bubbles, power saving and colour look, and about.</td><td></td><td></td></tr><tr><th>Input dB</th><td>Input gain in dB, before everything else. The shaper reacts to level changes, not to the absolute level, so this mainly sets how hard the threshold and the limiter are hit. Double-click for 0.</td><td>-24 to 24</td><td>0</td></tr><tr><th>Bands</th><td>Number of bands: 1 to 4. Each band shapes its own part of the sound. Drag the vertical dividers in the graph to place the crossovers. Unused bands are greyed out.</td><td>1 to 4</td><td>4</td></tr><tr><th>Filter (slope)</th><td>Crossover slope: how steeply the bands are separated, from 12 to 96 dB per octave. Default 24. Steeper keeps bands cleaner but rings a little more. The bands always add back flat.</td><td>12 to 96 dB/oct</td><td>24 dB</td></tr><tr><th>Listen</th><td>All: Hear the shaped result, as it will leave the plugin (Mix applies). Transients: Hear only the attack part of the shaped sound: the shaped sound minus its sustain part. Mix is ignored while listening. Sustain: Hear only the sustain part of the shaped sound (what is left after the attack part is taken away). Mix is ignored while listening.</td><td></td><td>All</td></tr><tr><th>Mix</th><td>Mix: shaped sound against the untouched input (delayed to match, so there is no comb filtering). 100% is fully shaped, 0% is exactly the input.</td><td>0 to 100</td><td>100</td></tr><tr><th>Boost</th><td>x1: Normal range (default). x2: Double: Attack and Sustain push twice as many dB per percent. x4: Four times: extreme shaping. Raise Max dB on a band to let it go further. The limiter still holds the Ceiling.</td><td></td><td>x1</td></tr><tr><th>FFT</th><td>Spectrum behind the bands. In + Out shows the input in grey and the output in green. The scale on the right is dBFS.</td><td></td><td>In + Out</td></tr><tr><th>Pre and Post meters</th><td>Level before the shaper (after the Input gain below). Two bars, left and right, in dB: the bar is the average level, the white line is the peak. Blue is safe, purple is the warning zone, pink is clipping. The cap stays pink after a clip; click to clear it. Level after the limiter and Output gain. Two bars in dB: average level with a white peak line. Blue is safe, purple is the warning zone, pink is clipping. The cap stays pink after a clip; click to clear it.</td><td></td><td></td></tr><tr><th>Frequency display</th><td>Frequency view, 20 Hz to 20 kHz. Drag the vertical dividers to move the crossovers. The coloured line in each band is the gain the shaper applies right now (left scale, -12 to +12 dB). Right scale: spectrum in dBFS.</td><td></td><td></td></tr><tr><th>Out dB</th><td>Output gain in dB, after the Mix and before the limiter, so you can push the sound into the limiter. Double-click for 0.</td><td>-24 to 24</td><td>0</td></tr><tr><th>Ceil</th><td>Limiter ceiling in dB, -12 to 0. Nothing leaves the plugin above this level. Default -0.3.</td><td>-12 to 0</td><td>-0.3</td></tr><tr><th>Lim</th><td>Limiter on or off. A lookahead limiter at the very end: nothing leaves the plugin above the Ceiling, whatever the Mix.</td><td>on or off</td><td>on</td></tr><tr><th>Release</th><td>Limiter release in ms: how fast the limiter lets go after a peak. Used when Auto is off. 5 to 500 ms.</td><td>5 to 500 ms</td><td>Auto</td></tr><tr><th>Auto</th><td>Auto release: the limiter lets go slowly after a hard hit and quickly after a light one. Switch it off to set the release by hand.</td><td></td><td>on</td></tr><tr><th>Look (lookahead)</th><td>Lookahead in ms, 1 to 7.5 (default 3). The limiter sees peaks this long before they play, so it can turn down smoothly. Longer is cleaner, shorter is lower latency. It sets the reported latency.</td><td>1 to 7.5 ms</td><td>3</td></tr><tr><th>Limiter GR meter</th><td>Limiter gain reduction right now, in dB. Scale 0 to -12. The number below is the current value.</td><td></td><td></td></tr><tr><th>Band Mix</th><td>Mix: shaped band against the untouched band (aligned in time). 100% is fully shaped.</td><td>0 to 100</td><td>100</td></tr><tr><th>Band power</th><td>power. Off lets the band pass untouched (it still goes through the crossover).</td><td>on or off</td><td>on</td></tr><tr><th>Mute, Solo</th><td>Mute removes a band from the output; Solo plays only the soloed bands. The strips under the display follow the crossovers.</td><td></td><td>off</td></tr><tr><th>Scope and Gain</th><td>Transient picture of this band. Scope: red is the original band, green is the shaped band, grey is where they overlap, as a waveform shape in dB over the last seconds. Gain: how much the band was turned up or down over time, in dB. Choose with the buttons below; Zoom changes the time span.</td><td></td><td>Scope</td></tr><tr><th>Zoom</th><td>Zoom the time axis of the display, 1x to 8x.</td><td>1x to 8x</td><td>4x</td></tr><tr><th>Speed</th><td>Fast: Fast detectors: for short clicks, hats and snappy drums. Medium: Medium detectors: a good start for most sounds. Slow: Slow detectors: for long bass notes, pads and lead tails.</td><td></td><td>Medium</td></tr><tr><th>Attack</th><td>Attack. Plus makes the first hit of each sound louder (more snap and punch). Minus softens it. 0 leaves it alone. Double-click for 0.</td><td>-100 to 100 %</td><td>0</td></tr><tr><th>Sustain</th><td>Sustain. Plus makes what comes after the hit louder (longer, fuller tails). Minus makes it shorter and tighter. 0 leaves it alone. Double-click for 0.</td><td>-100 to 100 %</td><td>0</td></tr><tr><th>Max dB</th><td>Max gain: the most this band can be turned up or down by the shaper, in dB (0 to 48, default 12). Keeps strong settings from running away.</td><td>0 to 48 dB</td><td>12</td></tr><tr><th>Band Output</th><td>Output gain in dB, after the shaper and before the bands are added together. Double-click for 0.</td><td>-24 to 8 dB</td><td>0</td></tr><tr><th>Level meter and Threshold</th><td>Band level in dB (before shaping) with the Threshold slider. Drag the white slider: below it the shaper does nothing, so quiet noise is not boosted. The word on the right says whether the shaper is working right now. Scale in dB.</td><td>-60 to 0 dB</td><td>-48 dB</td></tr><tr><th>Gain meter</th><td>Gain change of this band: how many dB the shaper is turning the band up (right, gold) or down (left, purple) right now. Scale -12 to +12 dB.</td><td>-12 to +12 dB</td><td></td></tr></table>
+
+<h2>How it works</h2>
+<ul>
+<li>Each band has a fast and a slow level follower. Their difference in dB says whether a hit is starting (attack) or fading (sustain). Only that difference matters, so the same settings work at any level.</li>
+<li>Attack and Sustain set how many dB the band is turned up or down. <b>Max dB</b> is a soft limit on that gain. <b>Boost</b> (x1, x2, x4) multiplies the strength of both.</li>
+<li><b>Speed</b> sets how quickly the followers react (Fast, Medium, Slow). Low bands are automatically slower so a steady bass note is not mistaken for hits.</li>
+<li>The audio is delayed by 1 ms against the detector so the gain is already up when a hit arrives. Mix 0% is the delayed input, unchanged.</li>
+<li>The limiter (lookahead 1 to 7.5 ms, Auto or manual release) is the last stage at every setting, so the output never goes above the Ceiling.</li>
+</ul>
+<p class="dim">The detector, the gain law and all time constants are our own design; they are not copied from any commercial product.</p>
+
+<h2>Latency</h2>
+<p>The plugin reports its latency to the host: 1 ms for the detector plus the limiter lookahead (4.0 ms at the default 3 ms lookahead). It is shown under the Pre meter. Mix and Bypass stay in time.</p>
+
+<h2>Keyboard and mouse</h2>
+<table><tr><td><kbd>B</kbd></td><td>Bypass on or off</td></tr><tr><td><kbd>[</kbd> <kbd>]</kbd></td><td>Previous and next preset</td></tr><tr><td>Knobs</td><td>Drag up or down, mouse wheel. Hold Shift for fine steps. Double-click to reset.</td></tr><tr><td>Threshold slider</td><td>Drag, mouse wheel, double-click to reset to -48 dB.</td></tr><tr><td>Crossover lines</td><td>Drag in the big display; double-click to reset.</td></tr><tr><td>Window</td><td>Drag a corner; it keeps its proportions. Double-click the wood to return to 100%.</td></tr><tr><td>Presets</td><td>Save stores your own preset in your user data folder (Studio 87/ClawShaper/presets). They are only ever on your computer.</td></tr></table>
+
+<h2>Install and uninstall</h2>
+<ul>
+<li><b>Linux:</b> unpack the zip, run <code>install.sh</code> (copies the VST3 to <code>~/.vst3</code>). <code>uninstall.sh</code> removes it.</li>
+<li><b>Windows:</b> run the installer. It adds an uninstaller. Close your DAW first.</li>
+<li><b>macOS:</b> open the package. The build is not notarised, so macOS may ask you to allow it in System Settings, Privacy and Security.</li>
+</ul>
+<p>After installing, rescan plugins in your host.</p>
+
+<h2>Licence and thanks</h2>
+<p>AGPL-3.0-or-later. Built with JUCE (AGPLv3). Fonts: Barlow Condensed and JetBrains Mono, SIL Open Font Licence 1.1. Source: <a href="https://github.com/SpeakingColors/clawshaper">github.com/SpeakingColors/clawshaper</a>.</p>
+</main></body></html>

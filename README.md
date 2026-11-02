@@ -2,19 +2,22 @@
 
 Multiband transient shaper with a safety limiter. Free and open source.
 
-<p align="center"><img src="docs/screenshot.png" width="900" alt="ClawShaper design mockup"></p>
-<p align="center"><sub>The interactive design mockup (screenshot). The plugin window will follow it exactly.</sub></p>
+<p align="center"><img src="docs/screenshot.png" width="900" alt="ClawShaper window"></p>
+<p align="center"><sub>The real plugin window.</sub></p>
 
 ## Status
-Design mockup only. The interactive mockup in `docs/mockup/` runs a WebAudio preview of the planned behaviour. The plugin itself is not built yet; the approved mockup will be ported natively to JUCE (VST3, Linux first). No manual yet: it ships with the plugin.
+Test build (VST3 for Linux, Windows and macOS), v0.1.0. The window is the approved mockup ported natively to JUCE. It has not been checked on real machines yet, so treat it as a test. Download the zip from the [Releases](https://github.com/SpeakingColors/clawshaper/releases) page: installers, uninstallers and the manual (PDF) are inside.
+
+## Controls
+Input dB, 1 to 4 bands with draggable crossovers, Filter slope 12 to 96 dB/oct, Listen (All, Transients, Sustain), Mix, Boost x1/x2/x4, FFT view, per band Attack, Sustain, Speed, Threshold, Max dB, Output, Mix, Mute, Solo, Scope and Gain views, Out dB, a lookahead limiter (Ceil, Release, Auto, Look), 19 factory presets, your own presets, Bypass.
+
+Every control has a hover info bubble.
 
 ## Try the mockup
 Open `docs/mockup/ClawShaper.html` in a browser. Nothing is sent anywhere; it works offline (fonts load from Google Fonts when online, with a fallback).
 
-## Controls in the mockup
-Input dB, Mix, Out dB, Ceil, Lim, Release, Look, Zoom, Attack, Sustain, Max dB, Output
-
-Every control has a hover info bubble (117 in total).
+## Build
+`cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build` (needs the usual JUCE Linux packages). Core DSP tests: `sh tests/run.sh`.
 
 ## Privacy
 Collects nothing. No network access.
