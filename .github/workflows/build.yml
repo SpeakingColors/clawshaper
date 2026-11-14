@@ -10,18 +10,21 @@ concurrency:
   group: clawshaper-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   core-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Core DSP tests (no JUCE)
         run: sh tests/run.sh
 
   linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -37,7 +40,7 @@ jobs:
           chmod +x pluginval
       - name: pluginval (strictness 5)
         run: xvfb-run -a ./pluginval --strictness-level 5 --skip-gui-tests "build/ClawShaper_artefacts/Release/VST3/ClawShaper.vst3"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ClawShaper-linux-vst3
           path: build/ClawShaper_artefacts/Release/VST3/ClawShaper.vst3
