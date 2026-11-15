@@ -1,0 +1,65 @@
+[
+  {
+    "before": "clawshaper-before-drums.mp3",
+    "after": "clawshaper-after-drums-kick-snap.mp3",
+    "preset": "Kick Snap",
+    "source": "Drum loop",
+    "description": "Drum loop through the real ClawShaper C++ core with the factory preset Kick Snap (Drums; kick, snap, punch). The After clip is level matched to the Before clip (-1.8 dB)."
+  },
+  {
+    "before": "clawshaper-before-bass.mp3",
+    "after": "clawshaper-after-bass-kick-snap.mp3",
+    "preset": "Kick Snap",
+    "source": "Bass line",
+    "description": "Bass line through the real ClawShaper C++ core with the factory preset Kick Snap (Drums; kick, snap, punch). The After clip is level matched to the Before clip (-1.4 dB)."
+  },
+  {
+    "before": "clawshaper-before-mix.mp3",
+    "after": "clawshaper-after-mix-kick-snap.mp3",
+    "preset": "Kick Snap",
+    "source": "Full mix loop",
+    "description": "Full mix loop through the real ClawShaper C++ core with the factory preset Kick Snap (Drums; kick, snap, punch). The After clip is level matched to the Before clip (-0.8 dB)."
+  },
+  {
+    "before": "clawshaper-before-drums.mp3",
+    "after": "clawshaper-after-drums-drum-bus-punch.mp3",
+    "preset": "Drum Bus Punch",
+    "source": "Drum loop",
+    "description": "Drum loop through the real ClawShaper C++ core with the factory preset Drum Bus Punch (Bus; drums, bus, punch). The After clip is level matched to the Before clip (-1.9 dB)."
+  },
+  {
+    "before": "clawshaper-before-bass.mp3",
+    "after": "clawshaper-after-bass-drum-bus-punch.mp3",
+    "preset": "Drum Bus Punch",
+    "source": "Bass line",
+    "description": "Bass line through the real ClawShaper C++ core with the factory preset Drum Bus Punch (Bus; drums, bus, punch). The After clip is level matched to the Before clip (-0.9 dB)."
+  },
+  {
+    "before": "clawshaper-before-mix.mp3",
+    "after": "clawshaper-after-mix-drum-bus-punch.mp3",
+    "preset": "Drum Bus Punch",
+    "source": "Full mix loop",
+    "description": "Full mix loop through the real ClawShaper C++ core with the factory preset Drum Bus Punch (Bus; drums, bus, punch). The After clip is level matched to the Before clip (-0.6 dB)."
+  },
+  {
+    "before": "clawshaper-before-drums.mp3",
+    "after": "clawshaper-after-drums-bass-fat-tails.mp3",
+    "preset": "Bass Fat Tails",
+    "source": "Drum loop",
+    "description": "Drum loop through the real ClawShaper C++ core with the factory preset Bass Fat Tails (Bass; bass, long, fat). The After clip is level matched to the Before clip (-1.2 dB)."
+  },
+  {
+    "before": "clawshaper-before-bass.mp3",
+    "after": "clawshaper-after-bass-bass-fat-tails.mp3",
+    "preset": "Bass Fat Tails",
+    "source": "Bass line",
+    "description": "Bass line through the real ClawShaper C++ core with the factory preset Bass Fat Tails (Bass; bass, long, fat). The After clip is level matched to the Before clip (-0.3 dB)."
+  },
+  {
+    "before": "clawshaper-before-mix.mp3",
+    "after": "clawshaper-after-mix-bass-fat-tails.mp3",
+    "preset": "Bass Fat Tails",
+    "source": "Full mix loop",
+    "description": "Full mix loop through the real ClawShaper C++ core with the factory preset Bass Fat Tails (Bass; bass, long, fat). The After clip is level matched to the Before clip (-0.0 dB)."
+  }
+]
