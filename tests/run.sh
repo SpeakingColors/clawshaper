@@ -6,3 +6,6 @@ g++ -std=c++17 -O2 -Wall -Wextra -o /tmp/mp_test tests/test_core.cpp
 /tmp/mp_test
 g++ -std=c++17 -O1 -g -fsanitize=address,undefined -fno-sanitize-recover=undefined -o /tmp/mp_test_san tests/test_core.cpp
 /tmp/mp_test_san quick
+
+# Studio 87 Gear Updater link (product id and link string)
+(cd "$(dirname "$0")/.." && g++ -std=c++17 -O2 -Wall -Wextra -o /tmp/s87_link_test tests/test_updater_link.cpp && /tmp/s87_link_test) || exit 1

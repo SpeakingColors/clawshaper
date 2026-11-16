@@ -2,6 +2,7 @@
 #include "Layout.h"
 #include "Theme.h"
 #include "Presets.h"
+#include "Studio87Link.h"
 #include "../plugin/ParamMap.h"
 #include <juce_dsp/juce_dsp.h>
 
@@ -834,8 +835,12 @@ struct ClawShaperEditor::Impl
             msg = "ClawShaper shapes the punch (attack) and the tail (sustain) of your sound in up to four bands. Attack: positive = more punch, negative = softer. Sustain: positive = longer tails, negative = tighter. Threshold: below it nothing is shaped. Listen: hear only the attack or the sustain part. Boost multiplies the effect. The limiter is always last and holds the Ceiling. Mix 0% is the untouched, delayed input. Hover any control for an info bubble. Double-click a knob to reset it; Shift while dragging for fine steps. Keys: B bypass, [ and ] previous and next preset.";
         else
             msg = "ClawShaper by Studio 87. Free and open source (AGPL-3.0-or-later). No telemetry, no data collection, no network access. Your own presets are stored in your user data folder under Studio 87/ClawShaper/presets. https://github.com/SpeakingColors/clawshaper";
-        auto opts = MessageBoxOptions().withIconType (MessageBoxIconType::NoIcon).withTitle ("ClawShaper").withMessage (msg).withButton ("OK");
-        AlertWindow::showAsync (opts, nullptr);
+        auto opts = MessageBoxOptions().withIconType (MessageBoxIconType::NoIcon).withTitle ("ClawShaper").withMessage (which == "bGuide" || which == "bSettings" ? msg : msg + "\n\n" + String (studio87link::aboutLine()));
+        const bool withUpdater = which != "bGuide" && which != "bSettings";
+        // Studio 87 Gear Updater: opens studio87://open?product=clawshaper, no network call. Button 1 is the updater, the last button (OK) returns 0.
+        if (withUpdater) opts = opts.withButton (studio87link::buttonText());
+        opts = opts.withButton ("OK");
+        AlertWindow::showAsync (opts, [withUpdater] (int pick) { if (withUpdater && pick == 1) studio87link::openUpdater ("clawshaper"); });
     }
 
     // ---------------------------------------------------------------- mouse
