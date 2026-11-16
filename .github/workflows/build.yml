@@ -35,7 +35,8 @@ jobs:
         run: cmake --build build --config Release -j4
       - name: Download pluginval
         run: |
-          curl -L -o pluginval.zip https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_Linux.zip
+          curl -L -o pluginval.zip https://github.com/Tracktion/pluginval/releases/download/v1.0.4/pluginval_Linux.zip
+          echo "c01c49d8063965c4c2dea8324468336768f5c9139e0b1caebde14c2400b55352  pluginval.zip" | sha256sum -c -
           unzip -o pluginval.zip
           chmod +x pluginval
       - name: pluginval (strictness 5)
