@@ -21,7 +21,7 @@ jobs:
   manual:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build the manual PDF
         run: |
           VER="${TAG#v}"; [ -z "$VER" ] && VER="0.0.0-dev"
@@ -29,13 +29,13 @@ jobs:
           sed -i "s/version 0.1.0/version $VER/" docs/manual.html
           google-chrome --headless --no-sandbox --disable-gpu --no-pdf-header-footer --print-to-pdf=ClawShaper-manual.pdf "file://$PWD/docs/manual.html"
           test -s ClawShaper-manual.pdf
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: manual, path: ClawShaper-manual.pdf }
 
   linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -51,7 +51,7 @@ jobs:
           cp -R "build/ClawShaper_artefacts/Release/VST3/ClawShaper.vst3" out/ClawShaper-Linux/
           cp installer/linux/install.sh installer/linux/uninstall.sh out/ClawShaper-Linux/
           test -n "$(find "out/ClawShaper-Linux/ClawShaper.vst3" -name '*.so')"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: linux, path: out/ClawShaper-Linux }
 
   windows:
@@ -59,8 +59,8 @@ jobs:
     needs: manual
     defaults: { run: { shell: bash } }
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with: { name: manual, path: manual }
       - name: Build
         run: |
@@ -75,13 +75,13 @@ jobs:
           choco install innosetup -y --no-progress
           "/c/Program Files (x86)/Inno Setup 6/ISCC.exe" "/DMyVersion=$VER" "/DSourceVst3=$(cygpath -w "$PWD/build/ClawShaper_artefacts/Release/VST3/ClawShaper.vst3")" "/DManualPdf=$(cygpath -w "$PWD/manual/ClawShaper-manual.pdf")" "/O$(cygpath -w "$PWD/out")" installer/windows/ClawShaper.iss
           test -s out/ClawShaper-Setup.exe
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: windows, path: out/ClawShaper-Setup.exe }
 
   macos:
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build
         run: |
           VER="${TAG#v}"; [ -z "$VER" ] && VER="0.1.0"
@@ -94,7 +94,7 @@ jobs:
           mkdir -p out
           pkgbuild --component "build/ClawShaper_artefacts/Release/VST3/ClawShaper.vst3" --install-location /Library/Audio/Plug-Ins/VST3 --identifier com.studio87.clawshaper.vst3 --version "$VER" out/ClawShaper-macOS.pkg
           test -s out/ClawShaper-macOS.pkg
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: macos, path: out/ClawShaper-macOS.pkg }
 
   package:
@@ -103,8 +103,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with: { path: parts }
       - name: Make the zip
         run: |
@@ -129,7 +129,7 @@ jobs:
           (cd "$D" && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
           zip -r "$D.zip" "$D"
           echo "ZIP=$D.zip" >> "$GITHUB_ENV"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with: { name: release-zip, path: "${{ env.ZIP }}" }
       - name: Publish
         if: env.TAG != ''
