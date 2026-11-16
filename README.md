@@ -16,13 +16,10 @@ Input dB, 1 to 4 bands with draggable crossovers, Filter slope 12 to 96 dB/oct, 
 Every control has a hover info bubble.
 
 ## Try the mockup
-Open `docs/mockup/ClawShaper.html` in a browser. Nothing is sent anywhere; it works offline (fonts load from Google Fonts when online, with a fallback).
+Open `docs/mockup/ClawShaper.html` in a browser.
 
 ## Build
 `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build` (needs the usual JUCE Linux packages). Core DSP tests: `sh tests/run.sh`.
-
-## Privacy
-Collects nothing. No network access.
 
 ## Support
 <p align="center">
